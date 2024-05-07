@@ -1,25 +1,20 @@
 package ace.actually.almanac;
 
 import ace.actually.almanac.items.AlmanacItem;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.nettakrim.spyglass_astronomy.*;
 import com.nettakrim.spyglass_astronomy.commands.admin_subcommands.ConstellationsCommand;
 import net.fabricmc.api.ModInitializer;
-
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
+import net.minecraft.recipe.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.resource.ResourceReloader;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +28,8 @@ public class Almanac implements ModInitializer {
 	public static final Identifier ASTRA_UPDATE_CLIENT_PACKET = new Identifier("almanac","astra_update_client_packet");
 
 	public static final AlmanacItem ALMANAC_ITEM  = new AlmanacItem(new Item.Settings());
+
+	public static RecipeSerializer<AlmanacCloningRecipe> ALMANAC_CLONING = new SpecialRecipeSerializer<>(AlmanacCloningRecipe::new);
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -40,6 +37,9 @@ public class Almanac implements ModInitializer {
 		// Proceed with mild caution.
 		Registry.register(Registries.ITEM,new Identifier("almanac","almanac"),ALMANAC_ITEM);
 		LOGGER.info("It's time to map some stars");
+
+		//fun fact: to actually make cloning work you also need to create a (recipe).json. see data/almanac/recipes/almanac_cloning.json
+		Registry.register(Registries.RECIPE_SERIALIZER,new Identifier("almanac","almanac_cloning"),ALMANAC_CLONING);
 
 		ServerPlayNetworking.registerGlobalReceiver(ASTRA_PACKET,((server, player, handler, buf, responseSender) ->
 		{
@@ -142,6 +142,7 @@ public class Almanac implements ModInitializer {
 						orbitingBody.select();
 						SpaceDataManager.makeChange();
 					}
+
                 }
 				client.player.sendMessage(Text.translatable("almanac.learnt"));
 			});

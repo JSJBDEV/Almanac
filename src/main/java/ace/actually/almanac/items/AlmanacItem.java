@@ -15,6 +15,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.item.WrittenBookItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
@@ -180,6 +181,7 @@ public class AlmanacItem extends Item {
             }
             String pcomma = v.toString();
             tooltip.add(Text.of(pcomma.substring(0,pcomma.length()-2)));
+
         }
     }
 }

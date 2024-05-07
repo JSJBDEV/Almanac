@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "almanac:almanac",
+  "key": {
+    "#": {
+      "item": "minecraft:paper"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "pattern": [
+    "LGL",
+    "###"
+  ],
+  "result": {
+    "item": "almanac:almanac"
+  },
+  "show_notification": true
+}
