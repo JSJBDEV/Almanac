@@ -3,7 +3,7 @@
 	"id": "almanac",
 	"version": "${version}",
 	"name": "Almanac for Spyglass Astronomy",
-	"description": "Share starts, orbiting bodies and constellations in bulk using an Almanac!",
+	"description": "Share stars, orbiting bodies and constellations in bulk using an Almanac!",
 	"authors": [
 		"Acrogenous"
 	],
