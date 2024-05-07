@@ -5,19 +5,30 @@ import com.nettakrim.spyglass_astronomy.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.Keyboard;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.input.KeyboardInput;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.network.ClientCommandSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class AlmanacItem extends Item {
     public AlmanacItem(Settings settings) {
@@ -26,7 +37,27 @@ public class AlmanacItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+
+        if(!world.isClient && !user.isSneaking())
+        {
+            NbtCompound compound = user.getStackInHand(hand).getNbt();
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeNbt(compound);
+            ServerPlayNetworking.send((ServerPlayerEntity) user,Almanac.ASTRA_UPDATE_CLIENT_PACKET,buf);
+        }
         if(world.isClient && user.isSneaking())
+        {
+            user.sendMessage(Text.translatable("almanac.wrote.help"));
+        }
+
+
+        return super.use(world, user, hand);
+    }
+
+
+    @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        if(context.getWorld().isClient && context.getPlayer().isSneaking() && context.getWorld().getBlockState(context.getBlockPos()).isOf(Blocks.CARTOGRAPHY_TABLE))
         {
             NbtCompound compound = new NbtCompound();
             NbtList astra = new NbtList();
@@ -60,19 +91,8 @@ public class AlmanacItem extends Item {
             ClientPlayNetworking.send(Almanac.ASTRA_PACKET,buf);
 
         }
-        if(!world.isClient && !user.isSneaking())
-        {
-            NbtCompound compound = user.getStackInHand(hand).getNbt();
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeNbt(compound);
-            ServerPlayNetworking.send((ServerPlayerEntity) user,Almanac.ASTRA_UPDATE_CLIENT_PACKET,buf);
-        }
-
-
-        return super.use(world, user, hand);
+        return super.useOnBlock(context);
     }
-
-
 
     private static String share(Constellation constellation) {
         return "sga:c_"+(SpaceDataManager.encodeConstellation(null, constellation).replace(" | ", "|"))+"|";
@@ -104,10 +124,10 @@ public class AlmanacItem extends Item {
         if (data.charAt(1) != '_') return null;
 
 
+
         switch (data.charAt(0)) {
             case 'c' -> {
                 //constellation shared with sga:c_Name|AAAA|
-                if (secondIndex == -1) return null;
                 String constellationName = data.substring(2, firstIndex);
                 String constellationData = data.substring(firstIndex + 1, secondIndex);
                 return "/sga:admin constellations add " + constellationData + " " + constellationName;
@@ -115,11 +135,11 @@ public class AlmanacItem extends Item {
             }
             case 's' -> {
                 //star shared with sga:s_Name|index|
-                if (secondIndex == -1) return null;
                 String starName = data.substring(2, firstIndex);
                 int starIndex;
+                int index = Integer.parseInt(data.substring(firstIndex + 1, secondIndex));
                 try {
-                    starIndex = Integer.parseInt(data.substring(firstIndex + 1, secondIndex));
+                    starIndex = index;
                 } catch (Exception e) {
                     break;
                 }
@@ -128,11 +148,11 @@ public class AlmanacItem extends Item {
             }
             case 'p' -> {
                 //planets shared with sga:p_Name|index|
-                if (secondIndex == -1) return null;
                 String orbitingBodyName = data.substring(2, firstIndex);
                 int orbitingBodyIndex;
+                int index = Integer.parseInt(data.substring(firstIndex + 1, secondIndex));
                 try {
-                    orbitingBodyIndex = Integer.parseInt(data.substring(firstIndex + 1, secondIndex));
+                    orbitingBodyIndex = index;
                 } catch (Exception e) {
                     break;
                 }
@@ -144,5 +164,22 @@ public class AlmanacItem extends Item {
             }
         }
         return null;
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        super.appendTooltip(stack, world, tooltip, context);
+        if(stack.hasNbt())
+        {
+            tooltip.add(Text.of("Version "+stack.getNbt().getInt("version")));
+            NbtList authors = (NbtList) stack.getNbt().get("authors");
+
+            StringBuilder v = new StringBuilder("Authors: ");
+            for (int i = 0; i < authors.size(); i++) {
+                v.append(authors.getString(i)).append(", ");
+            }
+            String pcomma = v.toString();
+            tooltip.add(Text.of(pcomma.substring(0,pcomma.length()-2)));
+        }
     }
 }

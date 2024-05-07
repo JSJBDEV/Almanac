@@ -2,16 +2,16 @@
 	"schemaVersion": 1,
 	"id": "almanac",
 	"version": "${version}",
-	"name": "Almanac",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Almanac for Spyglass Astronomy",
+	"description": "Share starts, orbiting bodies and constellations in bulk using an Almanac!",
 	"authors": [
-		"Me!"
+		"Acrogenous"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
-	"license": "CC0-1.0",
+	"license": "LGPL-3.0-only",
 	"icon": "assets/almanac/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -19,9 +19,6 @@
 			"ace.actually.almanac.Almanac"
 		]
 	},
-	"mixins": [
-		"almanac.mixins.json"
-	],
 	"depends": {
 		"fabricloader": ">=0.15.11",
 		"minecraft": "~1.20.1",

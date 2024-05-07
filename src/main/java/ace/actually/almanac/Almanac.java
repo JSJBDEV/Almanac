@@ -11,11 +11,15 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,22 +39,60 @@ public class Almanac implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		Registry.register(Registries.ITEM,new Identifier("almanac","almanac"),ALMANAC_ITEM);
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("It's time to map some stars");
 
 		ServerPlayNetworking.registerGlobalReceiver(ASTRA_PACKET,((server, player, handler, buf, responseSender) ->
 		{
-			NbtCompound compound = buf.readNbt();
+			NbtCompound newAstra = buf.readNbt();
 			server.execute(()->
 			{
-				if(player.getMainHandStack().isOf(ALMANAC_ITEM))
+				NbtCompound compound;
+				if(player.getMainHandStack().hasNbt())
 				{
-					player.getMainHandStack().setNbt(compound);
+					compound = player.getMainHandStack().getNbt();
+					compound.put("astra",newAstra.get("astra"));
 				}
-				if(player.getOffHandStack().isOf(ALMANAC_ITEM))
+				else
 				{
-					player.getOffHandStack().setNbt(compound);
+					compound = newAstra;
 				}
-				player.sendMessage(Text.of("You have saved your knowledge to this Almanac!"));
+
+				if(compound.contains("version"))
+				{
+					compound.putInt("version",compound.getInt("version")+1);
+				}
+				else
+				{
+					compound.putInt("version",1);
+				}
+
+				if(compound.contains("authors"))
+				{
+					NbtList authors = (NbtList) compound.get("authors");
+					boolean canAdd = true;
+					for (int i = 0; i < authors.size(); i++) {
+						if(authors.getString(i).equals(player.getName().getString()))
+						{
+							canAdd=false;
+							break;
+						}
+					}
+					if(canAdd)
+					{
+						authors.add(NbtString.of(player.getName().getString()));
+						compound.put("authors",authors);
+					}
+
+				}
+				else
+				{
+					NbtList authors = new NbtList();
+					authors.add(NbtString.of(player.getName().getString()));
+					compound.put("authors",authors);
+				}
+
+
+				player.sendMessage(Text.translatable("almanac.wrote"));
 			});
 		}));
 
@@ -101,6 +143,7 @@ public class Almanac implements ModInitializer {
 						SpaceDataManager.makeChange();
 					}
                 }
+				client.player.sendMessage(Text.translatable("almanac.learnt"));
 			});
 		}));
 	}
