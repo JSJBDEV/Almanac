@@ -17,7 +17,7 @@
 	"entrypoints": {
 		"main": [
 			"ace.actually.almanac.Almanac"
-		]
+		],"client": ["ace.actually.almanac.AlmanacClient"]
 	},
 	"depends": {
 		"fabricloader": ">=0.15.11",

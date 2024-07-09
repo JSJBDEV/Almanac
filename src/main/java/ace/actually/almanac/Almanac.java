@@ -1,10 +1,9 @@
 package ace.actually.almanac;
 
 import ace.actually.almanac.items.AlmanacItem;
-import com.nettakrim.spyglass_astronomy.*;
-import com.nettakrim.spyglass_astronomy.commands.admin_subcommands.ConstellationsCommand;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
@@ -13,11 +12,11 @@ import net.minecraft.nbt.NbtString;
 import net.minecraft.recipe.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.resource.ResourceReloader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class Almanac implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -25,7 +24,6 @@ public class Almanac implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger("almanac");
 	public static final Identifier ASTRA_PACKET = new Identifier("almanac","astra_packet");
-	public static final Identifier ASTRA_UPDATE_CLIENT_PACKET = new Identifier("almanac","astra_update_client_packet");
 
 	public static final AlmanacItem ALMANAC_ITEM  = new AlmanacItem(new Item.Settings());
 
@@ -96,56 +94,6 @@ public class Almanac implements ModInitializer {
 			});
 		}));
 
-		ClientPlayNetworking.registerGlobalReceiver(ASTRA_UPDATE_CLIENT_PACKET,((client, handler, buf, responseSender) ->
-		{
-			NbtCompound compound = buf.readNbt();
-			client.execute(()->
-			{
-				NbtList astra = (NbtList) compound.get("astra");
-				for (int i = 0; i < astra.size(); i++) {
-                    if(astra.getString(i).contains("constellations"))
-					{
-						//"/sga:admin constellations add constellationData constellationName,
-						String[] v = astra.getString(i).split(" ");
-						Constellation constellation = SpaceDataManager.decodeConstellation(null, v[4], v[3]);
-						ConstellationsCommand.addConstellation(constellation,true,true);
-					}
-					if(astra.getString(i).contains("star"))
-					{
 
-						//"/sga:admin rename star starIndex starName;
-						String[] v = astra.getString(i).split(" ");
-						Star star = SpyglassAstronomyClient.stars.get(Integer.parseInt(v[3]));
-						String name = v[4];
-						if (star.isUnnamed()) {
-							SpyglassAstronomyClient.say("commands.name.star", name);
-						} else {
-							SpyglassAstronomyClient.say("commands.name.star.rename", star.name,name);
-						}
-
-						star.name=name;
-						star.select();
-						SpaceDataManager.makeChange();
-					}
-					if(astra.getString(i).contains("planet"))
-					{
-						//"/sga:admin rename planet  orbitingBodyIndex orbitingBodyName;
-						String[] v = astra.getString(i).split(" ");
-						OrbitingBody orbitingBody = SpyglassAstronomyClient.orbitingBodies.get(Integer.parseInt(v[3]));
-						String name = v[4];
-						if (orbitingBody.isUnnamed()) {
-							SpyglassAstronomyClient.say("commands.name."+(orbitingBody.isPlanet ? "planet" : "comet"), name);
-						} else {
-							SpyglassAstronomyClient.say("commands.name."+(orbitingBody.isPlanet ? "planet" : "comet")+".rename", orbitingBody.name, name);
-						}
-						orbitingBody.name = name;
-						orbitingBody.select();
-						SpaceDataManager.makeChange();
-					}
-
-                }
-				client.player.sendMessage(Text.translatable("almanac.learnt"));
-			});
-		}));
 	}
 }

@@ -1,21 +1,17 @@
 package ace.actually.almanac.items;
 
 import ace.actually.almanac.Almanac;
+import ace.actually.almanac.AlmanacClient;
 import com.nettakrim.spyglass_astronomy.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.Keyboard;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.input.KeyboardInput;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.network.ClientCommandSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.WrittenBookItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtString;
@@ -23,7 +19,6 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
@@ -44,7 +39,7 @@ public class AlmanacItem extends Item {
             NbtCompound compound = user.getStackInHand(hand).getNbt();
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(compound);
-            ServerPlayNetworking.send((ServerPlayerEntity) user,Almanac.ASTRA_UPDATE_CLIENT_PACKET,buf);
+            ServerPlayNetworking.send((ServerPlayerEntity) user, AlmanacClient.ASTRA_UPDATE_CLIENT_PACKET,buf);
         }
         if(world.isClient && user.isSneaking())
         {
